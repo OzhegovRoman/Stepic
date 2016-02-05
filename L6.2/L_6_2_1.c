@@ -21,7 +21,7 @@ int main(void)
         exit(1);
     }
 
-    if ((msqid = msgget(key, 0644)) == -1) { /* connect to the queue */
+    if ((msqid = msgget(key, 0660 | IPC_CREAT)) == -1) { /* connect to the queue */
         perror("msgget");
         exit(1);
     }

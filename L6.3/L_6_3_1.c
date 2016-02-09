@@ -23,5 +23,22 @@ int main()
         printf("%d:%d\n",i,semval);
     }
 
+    for (i = 0; i< 16; i++){
+        int semval = semctl(semid, i, IPC_RMID, 0);
+        printf("%d:%d\n",i,semval);
+    }
+
+    semid = semget(key, 16, 0660 | IPC_CREAT);
+
+    for (i = 0; i<16; i++){
+        arg.val = i;
+        semctl(semid, i, SETVAL, arg);
+    }
+
+    for (i = 0; i< 16; i++){
+        int semval = semctl(semid, i, GETVAL, 0);
+        printf("%d:%d\n",i,semval);
+    }
+
     pause();
 }

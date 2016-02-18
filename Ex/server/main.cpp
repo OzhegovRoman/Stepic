@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
         return (-1);
     }
     else
-        if (pid == 0) return (0);
+        if (pid != 0) return (0);
 
 
     server_sock = startup(&port);

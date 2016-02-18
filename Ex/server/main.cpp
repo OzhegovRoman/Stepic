@@ -61,7 +61,7 @@ void accept_request(int client)
     int cgi = 0;      /* becomes true if server decides this is a CGI
                     * program */
     char *query_string = NULL;
-
+    
     printf("accept_request(); \n");
     numchars = get_line(client, buf, sizeof(buf));
     i = 0; j = 0;
@@ -71,16 +71,16 @@ void accept_request(int client)
         i++; j++;
     }
     method[i] = '\0';
-
+    
     if (strcasecmp(method, "GET") && strcasecmp(method, "POST"))
     {
         unimplemented(client);
         return;
     }
-
+    
     if (strcasecmp(method, "POST") == 0)
         cgi = 1;
-
+    
     i = 0;
     while (ISspace(buf[j]) && (j < sizeof(buf)))
         j++;
@@ -90,7 +90,7 @@ void accept_request(int client)
         i++; j++;
     }
     url[i] = '\0';
-
+    
     if (strcasecmp(method, "GET") == 0)
     {
         query_string = url;
@@ -103,7 +103,7 @@ void accept_request(int client)
             query_string++;
         }
     }
-
+    
     sprintf(path, "htdocs%s", url);
     if (path[strlen(path) - 1] == '/')
         strcat(path, "index.html");
@@ -125,7 +125,7 @@ void accept_request(int client)
         else
             execute_cgi(client, path, method, query_string);
     }
-
+    
     close(client);
 }
 
@@ -136,7 +136,7 @@ void accept_request(int client)
 void bad_request(int client)
 {
     char buf[1024];
-
+    
     sprintf(buf, "HTTP/1.0 400 BAD REQUEST\r\n");
     send(client, buf, sizeof(buf), 0);
     sprintf(buf, "Content-type: text/html\r\n");
@@ -159,7 +159,7 @@ void bad_request(int client)
 void cat(int client, FILE *resource)
 {
     char buf[1024];
-
+    
     fgets(buf, sizeof(buf), resource);
     while (!feof(resource))
     {
@@ -175,7 +175,7 @@ void cat(int client, FILE *resource)
 void cannot_execute(int client)
 {
     char buf[1024];
-
+    
     sprintf(buf, "HTTP/1.0 500 Internal Server Error\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-type: text/html\r\n");
@@ -215,7 +215,7 @@ void execute_cgi(int client, const char *path,
     char c;
     int numchars = 1;
     int content_length = -1;
-
+    
     buf[0] = 'A'; buf[1] = '\0';
     if (strcasecmp(method, "GET") == 0)
         while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
@@ -235,10 +235,10 @@ void execute_cgi(int client, const char *path,
             return;
         }
     }
-
+    
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
-
+    
     if (pipe(cgi_output) < 0) {
         cannot_execute(client);
         return;
@@ -247,7 +247,7 @@ void execute_cgi(int client, const char *path,
         cannot_execute(client);
         return;
     }
-
+    
     if ( (pid = fork()) < 0 ) {
         cannot_execute(client);
         return;
@@ -257,7 +257,7 @@ void execute_cgi(int client, const char *path,
         char meth_env[255];
         char query_env[255];
         char length_env[255];
-
+        
         dup2(cgi_output[1], 1);
         dup2(cgi_input[0], 0);
         close(cgi_output[0]);
@@ -284,7 +284,7 @@ void execute_cgi(int client, const char *path,
             }
         while (read(cgi_output[0], &c, 1) > 0)
             send(client, &c, 1, 0);
-
+        
         close(cgi_output[0]);
         close(cgi_input[1]);
         waitpid(pid, &status, 0);
@@ -309,7 +309,7 @@ int get_line(int sock, char *buf, int size)
     int i = 0;
     char c = '\0';
     int n;
-
+    
     while ((i < size - 1) && (c != '\n'))
     {
         n = recv(sock, &c, 1, 0);
@@ -332,7 +332,7 @@ int get_line(int sock, char *buf, int size)
             c = '\n';
     }
     buf[i] = '\0';
-
+    
     return(i);
 }
 
@@ -345,7 +345,7 @@ void headers(int client, const char *filename)
 {
     char buf[1024];
     (void)filename;  /* could use filename to determine file type */
-
+    
     strcpy(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
     strcpy(buf, SERVER_STRING);
@@ -362,7 +362,7 @@ void headers(int client, const char *filename)
 void not_found(int client)
 {
     char buf[1024];
-
+    
     sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, SERVER_STRING);
@@ -395,11 +395,11 @@ void serve_file(int client, const char *filename)
     FILE *resource = NULL;
     int numchars = 1;
     char buf[1024];
-
+    
     buf[0] = 'A'; buf[1] = '\0';
     while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
         numchars = get_line(client, buf, sizeof(buf));
-
+    
     resource = fopen(filename, "r");
     if (resource == NULL)
         not_found(client);
@@ -423,9 +423,9 @@ int startup(u_short *port)
 {
     int httpd = 0;
     struct sockaddr_in name;
-
+    
     printf("StartUp server at %u port\n", *port);
-
+    
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
@@ -455,7 +455,7 @@ int startup(u_short *port)
 void unimplemented(int client)
 {
     char buf[1024];
-
+    
     sprintf(buf, "HTTP/1.0 501 Method Not Implemented\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, SERVER_STRING);
@@ -476,14 +476,45 @@ void unimplemented(int client)
 
 /**********************************************************************/
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int server_sock = -1;
     u_short port = 8080;
     int client_sock = -1;
     struct sockaddr_in client_name;
     int client_name_len = sizeof(client_name);
-//    pthread_t newthread;
+    //    pthread_t newthread;
+    int flags, opt;
+    int nsecs, tfnd;
+    
+    nsecs = 0;
+    tfnd = 0;
+    flags = 0;
+    while ((opt = getopt(argc, argv, "hpd:")) != -1) {
+        switch (opt) {
+        case 'h':
+            flags = 1;
+            break;
+        case 'p':
+            port = atoi(optarg);
+            tfnd = 1;
+            break;
+        default: /* '?' */
+            fprintf(stderr, "Usage: %s [-t nsecs] [-n] name\n",
+                    argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    int pid = fork();
+
+    if (pid == -1)  {       // выведем на экран ошибку и её описание
+        printf("Error: Start Daemon failed \n");
+        return (-1);
+    }
+    else
+        if (pid == 0) return (0);
+
 
     server_sock = startup(&port);
     printf("httpd running on port %d\n", port);
@@ -497,9 +528,9 @@ int main(void)
                              (unsigned int *) &client_name_len);
         if (client_sock == -1)
             error_die("accept");
-         accept_request(client_sock);
-//        if (pthread_create(&newthread , NULL, accept_request, client_sock) != 0)
-//            perror("pthread_create");
+        accept_request(client_sock);
+        //        if (pthread_create(&newthread , NULL, accept_request, client_sock) != 0)
+        //            perror("pthread_create");
     }
 
     close(server_sock);

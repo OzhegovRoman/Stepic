@@ -40,6 +40,7 @@ void execute_cgi(int, const char *, const char *, const char *);
 int get_line(int, char *, int);
 void headers(int, const char *);
 void not_found(int);
+void found_null(int);
 void serve_file(int, const char *);
 int startup(u_short *);
 void unimplemented(int);
@@ -62,7 +63,6 @@ void accept_request(int client)
                     * program */
     char *query_string = NULL;
     
-    printf("accept_request(); \n");
     numchars = get_line(client, buf, sizeof(buf));
     i = 0; j = 0;
     while (!ISspace(buf[j]) && (i < sizeof(method) - 1))
@@ -110,7 +110,7 @@ void accept_request(int client)
     if (stat(path, &st) == -1) {
         while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
             numchars = get_line(client, buf, sizeof(buf));
-        not_found(client);
+        found_null(client);
     }
     else
     {
@@ -448,8 +448,6 @@ int startup(u_short *port)
     int httpd = 0;
     struct sockaddr_in name;
     
-    printf("StartUp server at %u port\n", *port);
-    
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
@@ -534,31 +532,31 @@ int main(int argc, char *argv[])
 
     port = tmp_port;
 
-//    int pid = fork();
+    int pid = fork();
 
-//    if (pid == -1)  {       // выведем на экран ошибку и её описание
-//        printf("Error: Start Daemon failed \n");
-//        return (-1);
-//    }
-//    else
-//        if (pid != 0) return (0);
+    if (pid == -1)  {       // выведем на экран ошибку и её описание
+        printf("Error: Start Daemon failed \n");
+        return (-1);
+    }
+    else
+        if (pid != 0) return (0);
 
-    // данный код уже выполняется в процессе потомка
-    // разрешаем выставлять все биты прав на создаваемые файлы,
-    // иначе у нас могут быть проблемы с правами доступа
-//    umask(0);
+//     данный код уже выполняется в процессе потомка
+//     разрешаем выставлять все биты прав на создаваемые файлы,
+//     иначе у нас могут быть проблемы с правами доступа
+    umask(0);
 
-//    // создаём новый сеанс, чтобы не зависеть от родителя
-//    setsid();
+    // создаём новый сеанс, чтобы не зависеть от родителя
+    setsid();
 
-//    // переходим в корень диска, если мы этого не сделаем, то могут быть проблемы.
-//    // к примеру с размантированием дисков
-//    chdir("/");
+    // переходим в корень диска, если мы этого не сделаем, то могут быть проблемы.
+    // к примеру с размантированием дисков
+    chdir("/");
 
-//    // закрываем дискрипторы ввода/вывода/ошибок, так как нам они больше не понадобятся
-//    close(STDIN_FILENO);
-//    close(STDOUT_FILENO);
-//    close(STDERR_FILENO);
+    // закрываем дискрипторы ввода/вывода/ошибок, так как нам они больше не понадобятся
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
 
 
     server_sock = startup(&port);

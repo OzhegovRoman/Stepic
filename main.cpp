@@ -362,8 +362,32 @@ void headers(int client, const char *filename)
 void not_found(int client)
 {
     char buf[1024];
-    
+
     sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, SERVER_STRING);
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Type: text/html\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "your request because the resource specified\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "is unavailable or nonexistent.\r\n");
+    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "</BODY></HTML>\r\n");
+    send(client, buf, strlen(buf), 0);
+}
+
+void found_null(int client)
+{
+    char buf[1024];
+
+    sprintf(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, SERVER_STRING);
     send(client, buf, strlen(buf), 0);
@@ -402,7 +426,7 @@ void serve_file(int client, const char *filename)
     
     resource = fopen(filename, "r");
     if (resource == NULL)
-        not_found(client);
+        found_null(client);
     else
     {
         headers(client, filename);
@@ -479,17 +503,16 @@ void unimplemented(int client)
 int main(int argc, char *argv[])
 {
     int server_sock = -1;
-    u_short port = 8080;
+    u_short port;
     int client_sock = -1;
     struct sockaddr_in client_name;
     int client_name_len = sizeof(client_name);
     //    pthread_t newthread;
     int flags, opt;
-    int nsecs, tfnd;
+    int  tfnd;
+
+    printf("Start program!!!\n");
     
-    nsecs = 0;
-    tfnd = 0;
-    flags = 0;
     int tmp_port;
     while ((opt = getopt(argc, argv, "hp:d")) != -1) {
         switch (opt) {
@@ -511,31 +534,31 @@ int main(int argc, char *argv[])
 
     port = tmp_port;
 
-    int pid = fork();
+//    int pid = fork();
 
-    if (pid == -1)  {       // выведем на экран ошибку и её описание
-        printf("Error: Start Daemon failed \n");
-        return (-1);
-    }
-    else
-        if (pid != 0) return (0);
+//    if (pid == -1)  {       // выведем на экран ошибку и её описание
+//        printf("Error: Start Daemon failed \n");
+//        return (-1);
+//    }
+//    else
+//        if (pid != 0) return (0);
 
     // данный код уже выполняется в процессе потомка
     // разрешаем выставлять все биты прав на создаваемые файлы,
     // иначе у нас могут быть проблемы с правами доступа
-    umask(0);
+//    umask(0);
 
-    // создаём новый сеанс, чтобы не зависеть от родителя
-    setsid();
+//    // создаём новый сеанс, чтобы не зависеть от родителя
+//    setsid();
 
-    // переходим в корень диска, если мы этого не сделаем, то могут быть проблемы.
-    // к примеру с размантированием дисков
-    chdir("/");
+//    // переходим в корень диска, если мы этого не сделаем, то могут быть проблемы.
+//    // к примеру с размантированием дисков
+//    chdir("/");
 
-    // закрываем дискрипторы ввода/вывода/ошибок, так как нам они больше не понадобятся
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
+//    // закрываем дискрипторы ввода/вывода/ошибок, так как нам они больше не понадобятся
+//    close(STDIN_FILENO);
+//    close(STDOUT_FILENO);
+//    close(STDERR_FILENO);
 
 
     server_sock = startup(&port);

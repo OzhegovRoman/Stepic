@@ -490,14 +490,17 @@ int main(int argc, char *argv[])
     nsecs = 0;
     tfnd = 0;
     flags = 0;
-    while ((opt = getopt(argc, argv, "hpd:")) != -1) {
+    int tmp_port;
+    while ((opt = getopt(argc, argv, "hp:d")) != -1) {
         switch (opt) {
         case 'h':
             flags = 1;
             break;
         case 'p':
-            port = atoi(optarg);
+            tmp_port = atoi(optarg);
             tfnd = 1;
+            break;
+        case 'd':
             break;
         default: /* '?' */
             fprintf(stderr, "Usage: %s [-t nsecs] [-n] name\n",
@@ -505,6 +508,8 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
+
+    port = tmp_port;
 
     int pid = fork();
 

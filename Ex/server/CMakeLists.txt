@@ -12,9 +12,9 @@ else()
         message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-aux_source_directory(. SRC_LIST)
+# aux_source_directory(. SRC_LIST)
 
-add_executable(final ${SRC_LIST})
+# add_executable(final ${SRC_LIST})
 
 find_package(Threads REQUIRED)
 if(THREADS_HAVE_PTHREAD_ARG)
@@ -22,7 +22,7 @@ if(THREADS_HAVE_PTHREAD_ARG)
      set_property(TARGET final PROPERTY INTERFACE_COMPILE_OPTIONS "-pthread")
 endif()
 if(CMAKE_THREAD_LIBS_INIT)
-  target_link_libraries(final "${CMAKE_THREAD_LIBS_INIT}")
+  #target_link_libraries(final "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
 

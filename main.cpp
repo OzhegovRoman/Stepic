@@ -31,6 +31,11 @@
 
 #define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
 
+//#define TEST
+//#define DEBUG
+
+char * dir;
+
 void accept_request(int);
 void bad_request(int);
 void cat(int, FILE *);
@@ -40,10 +45,16 @@ void execute_cgi(int, const char *, const char *, const char *);
 int get_line(int, char *, int);
 void headers(int, const char *);
 void not_found(int);
-void found_null(int);
+void empty_param(int);
 void serve_file(int, const char *);
 int startup(u_short *);
 void unimplemented(int);
+
+void debug(const char* ch){
+#ifdef DEBUG
+    printf(ch);
+#endif
+}
 
 /**********************************************************************/
 /* A request has caused a call to accept() on the server port to
@@ -52,6 +63,7 @@ void unimplemented(int);
 /**********************************************************************/
 void accept_request(int client)
 {
+    debug("accept_request()\n");
     char buf[1024];
     int numchars;
     char method[255];
@@ -59,8 +71,7 @@ void accept_request(int client)
     char path[512];
     size_t i, j;
     struct stat st;
-    int cgi = 0;      /* becomes true if server decides this is a CGI
-                    * program */
+
     char *query_string = NULL;
     
     numchars = get_line(client, buf, sizeof(buf));
@@ -71,15 +82,13 @@ void accept_request(int client)
         i++; j++;
     }
     method[i] = '\0';
+    debug("method: ");debug(method);debug("\n");
     
-    if (strcasecmp(method, "GET") && strcasecmp(method, "POST"))
+    if (strcasecmp(method, "GET"))
     {
         unimplemented(client);
         return;
     }
-    
-    if (strcasecmp(method, "POST") == 0)
-        cgi = 1;
     
     i = 0;
     while (ISspace(buf[j]) && (j < sizeof(buf)))
@@ -90,7 +99,8 @@ void accept_request(int client)
         i++; j++;
     }
     url[i] = '\0';
-    
+    debug("url: ");debug(url);debug("\n");
+
     if (strcasecmp(method, "GET") == 0)
     {
         query_string = url;
@@ -98,34 +108,28 @@ void accept_request(int client)
             query_string++;
         if (*query_string == '?')
         {
-            cgi = 1;
+            //            cgi = 1;
             *query_string = '\0';
             query_string++;
         }
     }
     
-    sprintf(path, "htdocs%s", url);
-    if (path[strlen(path) - 1] == '/')
-        strcat(path, "index.html");
-    if (stat(path, &st) == -1) {
+
+    sprintf(path, "%s%s", dir, url);
+    debug("path: "); debug(path); debug("\n");
+    if (strlen(url)>1){
+        debug("Not null parameters\n");
+        serve_file(client, path);
+    }
+    else {
+        debug("Null parameters\n");
+
+        buf[0] = 'A'; buf[1] = '\0';
         while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
             numchars = get_line(client, buf, sizeof(buf));
-        found_null(client);
+
+        empty_param(client);
     }
-    else
-    {
-        if ((st.st_mode & S_IFMT) == S_IFDIR)
-            strcat(path, "/index.html");
-        if ((st.st_mode & S_IXUSR) ||
-                (st.st_mode & S_IXGRP) ||
-                (st.st_mode & S_IXOTH)    )
-            cgi = 1;
-        if (!cgi)
-            serve_file(client, path);
-        else
-            execute_cgi(client, path, method, query_string);
-    }
-    
     close(client);
 }
 
@@ -371,19 +375,19 @@ void not_found(int client)
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
-    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "your request because the resource specified\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "is unavailable or nonexistent.\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "</BODY></HTML>\r\n");
-    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "your request because the resource specified\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "is unavailable or nonexistent.\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "</BODY></HTML>\r\n");
+//    send(client, buf, strlen(buf), 0);
 }
 
-void found_null(int client)
+void empty_param(int client)
 {
     char buf[1024];
 
@@ -393,16 +397,16 @@ void found_null(int client)
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
-    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "your request because the resource specified\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "is unavailable or nonexistent.\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "</BODY></HTML>\r\n");
-    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "your request because the resource specified\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "is unavailable or nonexistent.\r\n");
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "</BODY></HTML>\r\n");
+//    send(client, buf, strlen(buf), 0);
 }
 
 /**********************************************************************/
@@ -417,20 +421,29 @@ void serve_file(int client, const char *filename)
     FILE *resource = NULL;
     int numchars = 1;
     char buf[1024];
+
+    debug("Serve_file\n");
     
     buf[0] = 'A'; buf[1] = '\0';
     while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
         numchars = get_line(client, buf, sizeof(buf));
     
+
+    debug("Try to open file: ");
+    debug(filename);
+    debug("\n");
     resource = fopen(filename, "r");
-    if (resource == NULL)
-        found_null(client);
-    else
-    {
-        headers(client, filename);
-        cat(client, resource);
+    if (resource == NULL){
+        debug("Can't open file\n");
+        not_found(client);
     }
-    fclose(resource);
+    else{
+        debug("Successful opened file\n");
+                headers(client, filename);
+                cat(client, resource);
+        fclose(resource);
+    }
+    debug("close \n");
 }
 
 /**********************************************************************/
@@ -507,29 +520,35 @@ int main(int argc, char *argv[])
     int flags, opt;
     int  tfnd;
 
-    printf("Start program!!!\n");
+    debug("Start program!!!\n");
+    char *host;
     
     int tmp_port;
-    while ((opt = getopt(argc, argv, "hp:d")) != -1) {
+    while ((opt = getopt(argc, argv, "h:p:d:")) != -1) {
         switch (opt) {
         case 'h':
-            flags = 1;
+            host =(char*) malloc(strlen(optarg));
+            host = optarg;
             break;
         case 'p':
             tmp_port = atoi(optarg);
             tfnd = 1;
             break;
         case 'd':
+            dir =(char*) malloc(strlen(optarg));
+            dir = optarg;
             break;
-        default: /* '?' */
-            fprintf(stderr, "Usage: %s [-t nsecs] [-n] name\n",
-                    argv[0]);
-            exit(EXIT_FAILURE);
         }
     }
 
-    port = tmp_port;
+#ifdef DEBUG
+    printf("TCPIP %s\n", host);
+    printf("port %d\n", tmp_port);
+    printf("directory %s\n", dir);
+#endif
 
+    port = tmp_port;
+#ifndef TEST
     int pid = fork();
 
     if (pid == -1)  {       // выведем на экран ошибку и её описание
@@ -539,9 +558,9 @@ int main(int argc, char *argv[])
     else
         if (pid != 0) return (0);
 
-//     данный код уже выполняется в процессе потомка
-//     разрешаем выставлять все биты прав на создаваемые файлы,
-//     иначе у нас могут быть проблемы с правами доступа
+    //     данный код уже выполняется в процессе потомка
+    //     разрешаем выставлять все биты прав на создаваемые файлы,
+    //     иначе у нас могут быть проблемы с правами доступа
     umask(0);
 
     // создаём новый сеанс, чтобы не зависеть от родителя
@@ -555,7 +574,7 @@ int main(int argc, char *argv[])
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
-
+#endif
 
     server_sock = startup(&port);
     printf("httpd running on port %d\n", port);

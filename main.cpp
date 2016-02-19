@@ -29,7 +29,7 @@
 
 #define ISspace(x) isspace((int)(x))
 
-#define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
+//#define SERVER_STRING "Server: jdbhttpd/0.1.0\r\n"
 
 //#define TEST
 //#define DEBUG
@@ -352,8 +352,8 @@ void headers(int client, const char *filename)
     
     strcpy(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
-    strcpy(buf, SERVER_STRING);
-    send(client, buf, strlen(buf), 0);
+//    strcpy(buf, SERVER_STRING);
+//    send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-Type: text/html\r\n");
     send(client, buf, strlen(buf), 0);
     strcpy(buf, "\r\n");
@@ -369,10 +369,10 @@ void not_found(int client)
 
     sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
     send(client, buf, strlen(buf), 0);
-    sprintf(buf, SERVER_STRING);
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "Content-Type: text/html\r\n");
-    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, SERVER_STRING);
+//    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "Content-Type: text/html\r\n");
+//    send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
 //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
@@ -393,8 +393,8 @@ void empty_param(int client)
 
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
-    sprintf(buf, "Content-Type: text/html\r\n");
-    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, "Content-Type: text/html\r\n");
+//    send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
 //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
@@ -491,8 +491,8 @@ void unimplemented(int client)
     
     sprintf(buf, "HTTP/1.0 501 Method Not Implemented\r\n");
     send(client, buf, strlen(buf), 0);
-    sprintf(buf, SERVER_STRING);
-    send(client, buf, strlen(buf), 0);
+//    sprintf(buf, SERVER_STRING);
+//    send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-Type: text/html\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");

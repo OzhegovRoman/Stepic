@@ -47,7 +47,7 @@ void headers(int, const char *);
 void not_found(int);
 void empty_param(int);
 void serve_file(int, const char *);
-int startup(u_short *);
+int startup(char *host, u_short *);
 void unimplemented(int);
 
 void debug(const char* ch){
@@ -352,8 +352,8 @@ void headers(int client, const char *filename)
     
     strcpy(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
-//    strcpy(buf, SERVER_STRING);
-//    send(client, buf, strlen(buf), 0);
+    //    strcpy(buf, SERVER_STRING);
+    //    send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-Type: text/html\r\n");
     send(client, buf, strlen(buf), 0);
     strcpy(buf, "\r\n");
@@ -369,22 +369,22 @@ void not_found(int client)
 
     sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
     send(client, buf, strlen(buf), 0);
-//    sprintf(buf, SERVER_STRING);
-//    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, SERVER_STRING);
+    //    send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-Type: text/html\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "your request because the resource specified\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "is unavailable or nonexistent.\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "</BODY></HTML>\r\n");
-//    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "your request because the resource specified\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "is unavailable or nonexistent.\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "</BODY></HTML>\r\n");
+    //    send(client, buf, strlen(buf), 0);
 }
 
 void empty_param(int client)
@@ -397,16 +397,16 @@ void empty_param(int client)
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "your request because the resource specified\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "is unavailable or nonexistent.\r\n");
-//    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "</BODY></HTML>\r\n");
-//    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "your request because the resource specified\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "is unavailable or nonexistent.\r\n");
+    //    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, "</BODY></HTML>\r\n");
+    //    send(client, buf, strlen(buf), 0);
 }
 
 /**********************************************************************/
@@ -439,8 +439,8 @@ void serve_file(int client, const char *filename)
     }
     else{
         debug("Successful opened file\n");
-                headers(client, filename);
-                cat(client, resource);
+        headers(client, filename);
+        cat(client, resource);
         fclose(resource);
     }
     debug("close \n");
@@ -454,10 +454,12 @@ void serve_file(int client, const char *filename)
  * Parameters: pointer to variable containing the port to connect on
  * Returns: the socket */
 /**********************************************************************/
-int startup(u_short *port)
+int startup(char* host, u_short *port)
 {
     int httpd = 0;
     struct sockaddr_in name;
+
+    unsigned char buf[sizeof(struct in6_addr)];
     
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
@@ -465,7 +467,12 @@ int startup(u_short *port)
     memset(&name, 0, sizeof(name));
     name.sin_family = AF_INET;
     name.sin_port = htons(*port);
-    name.sin_addr.s_addr = htonl(INADDR_ANY);
+    int s = inet_pton(AF_INET, host, buf);
+#ifdef DEBUG
+    printf("result of inet_pton(): %d",s);
+#endif
+    name.sin_addr.s_addr = *((uint32_t*)buf);
+
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         error_die("bind");
     if (*port == 0)  /* if dynamically allocating a port */
@@ -491,8 +498,8 @@ void unimplemented(int client)
     
     sprintf(buf, "HTTP/1.0 501 Method Not Implemented\r\n");
     send(client, buf, strlen(buf), 0);
-//    sprintf(buf, SERVER_STRING);
-//    send(client, buf, strlen(buf), 0);
+    //    sprintf(buf, SERVER_STRING);
+    //    send(client, buf, strlen(buf), 0);
     sprintf(buf, "Content-Type: text/html\r\n");
     send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
@@ -576,7 +583,7 @@ int main(int argc, char *argv[])
     close(STDERR_FILENO);
 #endif
 
-    server_sock = startup(&port);
+    server_sock = startup(host, &port);
     printf("httpd running on port %d\n", port);
 
     printf("server_sock: %d\n", server_sock);

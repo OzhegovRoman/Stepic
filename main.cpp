@@ -371,8 +371,8 @@ void not_found(int client)
     send(client, buf, strlen(buf), 0);
 //    sprintf(buf, SERVER_STRING);
 //    send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "Content-Type: text/html\r\n");
-//    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Type: text/html\r\n");
+    send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
 //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
@@ -393,8 +393,8 @@ void empty_param(int client)
 
     sprintf(buf, "HTTP/1.0 200 OK\r\n");
     send(client, buf, strlen(buf), 0);
-//    sprintf(buf, "Content-Type: text/html\r\n");
-//    send(client, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Type: text/html\r\n");
+    send(client, buf, strlen(buf), 0);
     sprintf(buf, "\r\n");
     send(client, buf, strlen(buf), 0);
 //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");

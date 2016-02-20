@@ -26,6 +26,7 @@
 //#include <pthread.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #define ISspace(x) isspace((int)(x))
 
@@ -350,16 +351,14 @@ int get_line(int sock, char *buf, int size)
 /**********************************************************************/
 void headers(int client, const char *filename)
 {
-    char buf[1024];
-    (void)filename;  /* could use filename to determine file type */
+    char buf[1024]; // 20Mb buffer
+
+    struct stat statbuf;
+    stat(filename, &statbuf);
     
-    strcpy(buf, "HTTP/1.0 200 OK\r\n");
-    send(client, buf, strlen(buf), 0);
-    //    strcpy(buf, SERVER_STRING);
-    //    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "Content-Type: text/html\r\n");
-    send(client, buf, strlen(buf), 0);
-    strcpy(buf, "\r\n");
+    sprintf(buf, "HTTP/1.0 200 OK\r\n"
+    "Content-Length: %9jd\r\n"
+    "Content-Type: text/html\r\n\r\n", (intmax_t) statbuf.st_size);
     send(client, buf, strlen(buf), 0);
 }
 
@@ -370,46 +369,10 @@ void not_found(int client)
 {
     char buf[1024];
 
-    sprintf(buf, "HTTP/1.0 404 NOT FOUND\r\n");
+    sprintf (buf, "HTTP/1.0 404 NOT FOUND\r\n"
+             "Content-Length: 0\r\n"
+             "Content-Type: text/html\r\n\r\n");
     send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, SERVER_STRING);
-    //    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "Content-Type: text/html\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "\r\n");
-    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "your request because the resource specified\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "is unavailable or nonexistent.\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "</BODY></HTML>\r\n");
-    //    send(client, buf, strlen(buf), 0);
-}
-
-void empty_param(int client)
-{
-    char buf[1024];
-
-    sprintf(buf, "HTTP/1.0 200 OK\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "Content-Type: text/html\r\n");
-    send(client, buf, strlen(buf), 0);
-    sprintf(buf, "\r\n");
-    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "<HTML><TITLE>Not Found</TITLE>\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "<BODY><P>The server could not fulfill\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "your request because the resource specified\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "is unavailable or nonexistent.\r\n");
-    //    send(client, buf, strlen(buf), 0);
-    //    sprintf(buf, "</BODY></HTML>\r\n");
-    //    send(client, buf, strlen(buf), 0);
 }
 
 /**********************************************************************/

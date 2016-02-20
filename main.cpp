@@ -123,12 +123,15 @@ void accept_request(int client)
     }
     else {
         debug("Null parameters\n");
+        sprintf(path,"%s/index.html", dir);
+        serve_file(client, path);
 
-        buf[0] = 'A'; buf[1] = '\0';
-        while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
-            numchars = get_line(client, buf, sizeof(buf));
 
-        empty_param(client);
+//        buf[0] = 'A'; buf[1] = '\0';
+//        while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
+//            numchars = get_line(client, buf, sizeof(buf));
+
+//        empty_param(client);
     }
     close(client);
 }

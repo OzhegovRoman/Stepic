@@ -474,7 +474,8 @@ int startup(char* host, u_short *port)
 #ifdef DEBUG
     printf("result of inet_pton(): %d",s);
 #endif
-    name.sin_addr.s_addr = *((uint32_t*)buf);
+//    name.sin_addr.s_addr = *((uint32_t*)buf);
+    name.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         error_die("bind");
